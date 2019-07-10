@@ -1,4 +1,4 @@
-const express = 'express';
+const express = require('express');
 
 const server = express();
 
@@ -9,7 +9,20 @@ server.get('/', (req, res) => {
 //custom middleware
 
 function logger(req, res, next) {
-
+    
 };
+
+function validateUserId( req, res, next){
+  const { id } = req.params
+  if(id){
+
+  }else {
+    res.status(400).json({
+      message: "invalid user id" 
+      
+    })
+    next()
+  }
+}
 
 module.exports = server;
