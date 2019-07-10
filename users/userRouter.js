@@ -1,11 +1,11 @@
 const express = require("express");
 const users = require("./userDb");
-const posts = require("../posts/postDb")
+const posts = require("../posts/postDb");
 
 const router = express.Router();
 router.use(express.json());
 
-router.post("/", (req, res) => {
+router.post("/", validateUser, (req, res) => {
   const user = req.body;
   users
     .insert(user)
@@ -19,21 +19,20 @@ router.post("/", (req, res) => {
     });
 });
 
-router.post("/:id/posts", (req, res) => {
-    const text = req.body.text
-    const { id } = req.params
-    posts.insert({text, user_id: id})
+router.post("/:id/posts", validateUserId, (req, res) => {
+  const text = req.body.text;
+  const { id } = req.params;
+  posts
+    .insert({ text, user_id: id })
     .then(post => {
-        res.status(200).json(post)
+      res.status(200).json(post);
     })
     .catch(error => {
-        console.log(error)
-        res.status(500).json({
-            
-            error: error
-        })
-    })
-
+      console.log(error);
+      res.status(500).json({
+        error: error
+      });
+    });
 });
 
 router.get("/", (req, res) => {
@@ -49,7 +48,7 @@ router.get("/", (req, res) => {
     });
 });
 
-router.get("/:id", (req, res) => {
+router.get("/:id", validateUserId, (req, res) => {
   const { id } = req.params;
   users
     .getById(id)
@@ -63,7 +62,7 @@ router.get("/:id", (req, res) => {
     });
 });
 
-router.get("/:id/posts", (req, res) => {
+router.get("/:id/posts", validateUserId, (req, res) => {
   const { id } = req.params;
   users
     .getUserPosts(id)
@@ -77,13 +76,13 @@ router.get("/:id/posts", (req, res) => {
     });
 });
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", validateUserId, (req, res) => {
   const { id } = req.params;
   users
     .remove(id)
     .then(user => {
       res.status(200).json({
-          message: "User Sucessfully deleted"
+        message: "User Sucessfully deleted"
       });
     })
     .catch(() => {
@@ -93,7 +92,7 @@ router.delete("/:id", (req, res) => {
     });
 });
 
-router.put("/:id", (req, res) => {
+router.put("/:id", validateUserId, (req, res) => {
   const { id } = req.params;
   const user = req.body;
   users
@@ -110,9 +109,33 @@ router.put("/:id", (req, res) => {
 
 //custom middleware
 
-function validateUserId(req, res, next) {}
+function validateUserId(req, res, next) {
+  const { id } = req.params;
+  posts
+    .getById(id)
+    .then(user => {
+      if (user) {
+        req.user = user;
+        next();
+      } else {
+        res.status(400).json({ message: "user not found" });
+      }
+    })
+    .catch(() => {
+      res.status(500).json({ message: "unable to process request" });
+    });
+}
 
-function validateUser(req, res, next) {}
+function validateUser(req, res, next) {
+  const user = req.body;
+  if (!user) {
+    res.status(400).json({ message: "missing user data" });
+  } else if (!user.name) {
+    res.status(400).json({ message: "missing required name field" });
+  } else {
+    next();
+  }
+}
 
 function validatePost(req, res, next) {}
 
