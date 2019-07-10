@@ -1,28 +1,21 @@
 const express = require('express');
+const postRouter = require('./posts/postRouter')
+const userRouter = require('./users/userRouter')
 
 const server = express();
+server.use(express.json());
 
-server.get('/', (req, res) => {
-  res.send(`<h2>Let's write some middleware!</h2>`)
-});
+server.use('/posts', postRouter)
+server.use('/users', userRouter)
 
 //custom middleware
 
 function logger(req, res, next) {
-    
+  const date = new Date();
+  console.log(`Shebang!! you made a ${req.method} request to ${req.url} on ${date}`)
+  next();
 };
 
-function validateUserId( req, res, next){
-  const { id } = req.params
-  if(id){
-
-  }else {
-    res.status(400).json({
-      message: "invalid user id" 
-      
-    })
-    next()
-  }
-}
+server.listen(3000, () => console.log("listening on port 3000"))
 
 module.exports = server;

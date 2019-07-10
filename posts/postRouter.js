@@ -1,7 +1,8 @@
-const express = "express";
+const express = require("express");
 const posts = require("./postDb");
 
 const router = express.Router();
+router.use(express.json());
 
 router.get("/", (req, res) => {
   posts
@@ -31,13 +32,41 @@ router.get("/:id", (req, res) => {
 });
 
 router.delete("/:id", (req, res) => {
-    const
+  const { id } = req.params;
+  posts
+    .remove(id)
+    .then(post => {
+      res.status(200).json(post);
+    })
+    .catch(() => {
+      res.status(500).json({
+        error: "Internal server error"
+      });
+    });
 });
 
-router.put("/:id", (req, res) => {});
+router.put("/:id", (req, res) => {
+  const { id } = req.params;
+  const post = req.body;
+  posts
+    .update(id, post)
+    .then(post => {
+      res.status(200).json(post);
+    })
+    .catch(() => {
+      res.status(500).json({
+        error: "Internal server error"
+      });
+    });
+});
 
 // custom middleware
 
-function validatePostId(req, res, next) {}
+function validatePostId(req, res, next) {
+  const { id } = req.params;
+  if (!isNaN(parseInt(id, 10))) {
+      if(id){}
+  }
+}
 
 module.exports = router;
